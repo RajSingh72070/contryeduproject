@@ -1,8 +1,11 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
@@ -14,9 +17,6 @@ import adminRoutes from './routes/adminRoutes.js';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { sanitize } from './middleware/sanitizeMiddleware.js';
-
-// Load environment variables
-dotenv.config();
 
 // Connect to Database
 connectDB();

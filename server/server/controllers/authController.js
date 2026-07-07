@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 
 // Helper to generate JWT Token
@@ -31,6 +32,13 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({
         status: 'error',
         message: 'Password must be at least 6 characters long',
+      });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        status: 'error',
+        message: 'Database is currently unavailable. Please try again later.',
       });
     }
 
@@ -72,6 +80,14 @@ export const registerUser = async (req, res) => {
     }
   } catch (error) {
     console.error('[Register Error]', error);
+
+    if (error.name === 'MongooseError' || error.name === 'MongoServerSelectionError' || error.message?.includes('buffering timed out')) {
+      return res.status(503).json({
+        status: 'error',
+        message: 'Database connection failed. Please try again later.',
+      });
+    }
+
     return res.status(500).json({
       status: 'error',
       message: 'Internal server error during registration',
