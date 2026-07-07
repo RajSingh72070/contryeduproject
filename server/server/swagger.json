@@ -1,0 +1,570 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "SupportGPT API Spec",
+    "description": "Production-ready Customer Support RAG Assistant API backend for document injection, index compilation, memory collection, and chat operations.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5001/api",
+      "description": "Local Dev Server Proxy path"
+    },
+    {
+      "url": "http://localhost:5001",
+      "description": "Root server path"
+    }
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "summary": "Register a new user / operator",
+        "description": "Creates a new operator account and returns details alongside the JWT token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string", "example": "Jane Doe" },
+                  "email": { "type": "string", "example": "jane@example.com" },
+                  "password": { "type": "string", "example": "securepass123" },
+                  "role": { "type": "string", "enum": ["user", "admin"], "example": "user" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successfully registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string", "example": "664c39fa0a12cf3019ab3b10" },
+                        "name": { "type": "string", "example": "Jane Doe" },
+                        "email": { "type": "string", "example": "jane@example.com" },
+                        "role": { "type": "string", "example": "user" },
+                        "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Validation error or invalid password size" },
+          "409": { "description": "User already exists with this email" }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "summary": "Log in an operator",
+        "description": "Authenticates a user and issues a Bearer JWT Token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "jane@example.com" },
+                  "password": { "type": "string", "example": "securepass123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string", "example": "664c39fa0a12cf3019ab3b10" },
+                        "name": { "type": "string", "example": "Jane Doe" },
+                        "email": { "type": "string", "example": "jane@example.com" },
+                        "role": { "type": "string", "example": "user" },
+                        "profilePicture": { "type": "string", "example": "/uploads/avatar-171822.png" },
+                        "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Invalid email or password" }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "summary": "Retrieve user profile details",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string", "example": "664c39fa0a12cf3019ab3b10" },
+                        "name": { "type": "string", "example": "Jane Doe" },
+                        "email": { "type": "string", "example": "jane@example.com" },
+                        "role": { "type": "string", "example": "user" },
+                        "profilePicture": { "type": "string", "example": "/uploads/avatar-171822.png" },
+                        "createdAt": { "type": "string", "example": "2026-07-07T10:00:00Z" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Not authorized - token invalid or missing" }
+        }
+      },
+      "put": {
+        "summary": "Update user details",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "Jane Smith" },
+                  "email": { "type": "string", "example": "jane.smith@example.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string", "example": "664c39fa0a12cf3019ab3b10" },
+                        "name": { "type": "string", "example": "Jane Smith" },
+                        "email": { "type": "string", "example": "jane.smith@example.com" },
+                        "role": { "type": "string", "example": "user" },
+                        "profilePicture": { "type": "string", "example": "/uploads/avatar-171822.png" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": { "description": "Email already in use" }
+        }
+      }
+    },
+    "/profile/password": {
+      "put": {
+        "summary": "Change account password",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["currentPassword", "newPassword"],
+                "properties": {
+                  "currentPassword": { "type": "string", "example": "securepass123" },
+                  "newPassword": { "type": "string", "example": "newsecurepass456" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Password updated successfully" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Incorrect current password" }
+        }
+      }
+    },
+    "/profile/avatar": {
+      "post": {
+        "summary": "Upload profile picture",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["avatar"],
+                "properties": {
+                  "avatar": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "profilePicture": { "type": "string", "example": "/uploads/avatar-171822.png" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents": {
+      "get": {
+        "summary": "List documents owned by operator",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "count": { "type": "integer", "example": 2 },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "_id": { "type": "string", "example": "664c39fa0a12cf3019ab3b50" },
+                          "originalName": { "type": "string", "example": "RefundPolicy.pdf" },
+                          "size": { "type": "integer", "example": 142055 },
+                          "type": { "type": "string", "example": "PDF" },
+                          "status": { "type": "string", "example": "indexed" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/documents/upload": {
+      "post": {
+        "summary": "Upload a PDF, DOCX, or TXT document",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successfully uploaded and parsed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string", "example": "664c39fa0a12cf3019ab3b50" },
+                        "originalName": { "type": "string", "example": "RefundPolicy.pdf" },
+                        "size": { "type": "integer", "example": 142055 },
+                        "type": { "type": "string", "example": "PDF" },
+                        "status": { "type": "string", "example": "processed" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": { "description": "Parsing failure or text extraction error" }
+        }
+      }
+    },
+    "/documents/{id}": {
+      "delete": {
+        "summary": "Delete an uploaded document",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "664c39fa0a12cf3019ab3b50"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Document deleted successfully" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/knowledge": {
+      "get": {
+        "summary": "Retrieve vector index details",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Returns status metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "chromaStatus": { "type": "string", "example": "connected" },
+                        "totalDocuments": { "type": "integer", "example": 3 },
+                        "indexedCount": { "type": "integer", "example": 2 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/knowledge/reindex": {
+      "post": {
+        "summary": "Compile text chunks and generate embeddings in vector database",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Vector indexing completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "message": { "type": "string", "example": "Knowledge Base reindexed successfully. Embedded 2 document(s)." }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat": {
+      "post": {
+        "summary": "Submit a support inquiry (RAG Completion)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["question"],
+                "properties": {
+                  "question": { "type": "string", "example": "What is the return window?" },
+                  "modelName": { "type": "string", "example": "gpt-4o-mini" },
+                  "temperature": { "type": "number", "example": 0 },
+                  "sessionId": { "type": "string", "example": "SESS-171822-abc" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns AI answer citations and similarities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "answer": { "type": "string", "example": "Refunds are processed within 14 days of receipt." },
+                    "confidence": { "type": "integer", "example": 90 },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "documentName": { "type": "string", "example": "RefundPolicy.pdf" },
+                          "chunkNumber": { "type": "integer", "example": 3 },
+                          "similarityScore": { "type": "integer", "example": 90 },
+                          "confidenceScore": { "type": "integer", "example": 90 },
+                          "text": { "type": "string", "example": "All refunds are initiated within 14 days of return approval..." }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat/history": {
+      "get": {
+        "summary": "List conversational history threads",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Session groups list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "sessionId": { "type": "string", "example": "SESS-171822-abc" },
+                          "turnsCount": { "type": "integer", "example": 4 },
+                          "lastTimestamp": { "type": "string", "example": "2026-07-07T10:00:00Z" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Clear all conversational logs",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Success message"
+          }
+        }
+      }
+    },
+    "/chat/history/{sessionId}": {
+      "delete": {
+        "summary": "Delete a specific chat thread log session",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "example": "SESS-171822-abc"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success message"
+          }
+        }
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "summary": "Global system statistics (Admin Only)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Stats objects data"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
