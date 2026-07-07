@@ -1,1 +1,0 @@
-import{d as n}from"./index-B3IOG3M-.js";const a={reindex:async()=>(await n.post("/knowledge/reindex")).data,getStats:async()=>(await n.get("/knowledge")).data,deindex:async e=>(await n.delete(`/knowledge/${e}`)).data};export{a as k};

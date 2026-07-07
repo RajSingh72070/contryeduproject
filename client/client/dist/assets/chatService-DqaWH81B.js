@@ -1,0 +1,1 @@
+import{d as t}from"./index-t0hnBkXN.js";const o={query:async(e,s={})=>(await t.post("/chat",{message:e,temperature:s.temperature,modelName:s.modelName,sessionId:s.sessionId})).data,getHistory:async()=>(await t.get("/chat/history")).data,deleteSession:async e=>(await t.delete(`/chat/history/${e}`)).data,clearHistory:async()=>(await t.delete("/chat/history")).data};export{o as c};

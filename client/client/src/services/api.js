@@ -1,8 +1,10 @@
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://contryeduproject.onrender.com';
+
 // Create central Axios instance
 const api = axios.create({
-  baseURL: '/api', // Proxy in vite.config.js redirects this to http://localhost:5001/api
+  baseURL: `${API_BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },

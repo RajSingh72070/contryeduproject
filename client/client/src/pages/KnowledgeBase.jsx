@@ -59,7 +59,8 @@ const KnowledgeBase = () => {
   };
 
   const handlePreview = (name) => {
-    window.open(`/api/uploads/${name}`, '_blank');
+    const baseUrl = import.meta.env.VITE_API_URL || 'https://contryeduproject.onrender.com';
+    window.open(`${baseUrl}/api/uploads/${name}`, '_blank');
   };
 
   const filteredDocs = documents.filter((doc) =>
